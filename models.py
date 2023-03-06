@@ -5,8 +5,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_sqlalchemy.model import DefaultMeta
 from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import mapped_column, Mapped, relationship
+from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
+
 
 @dataclass
 class Comic(db.Model):
@@ -31,3 +33,19 @@ class Page(db.Model):
     page_number: Mapped[int]
 
     comic: Mapped[Comic] = relationship(back_populates="pages")
+
+
+@dataclass
+class User(db.Model):
+    __tablename__ = "user"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(256))
+    hashed_password: Mapped[str]
+    email: Mapped[Optional[str]]
+
+    def check_password(self, password) -> bool:
+        return check_password_hash(self.hashed_password, password)
+    
+    def modify_password_hash(self,password):
+        self.hashed_password = generate_password_hash(password)

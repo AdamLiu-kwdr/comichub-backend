@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, jsonify, request, abort
-from models import db, Comic, Page
+from flask_jwt_extended import jwt_required
+from models import db, Comic
 from sqlalchemy import select
 
 comic_api = Blueprint("comic_api", __name__)
@@ -20,6 +21,7 @@ def get_by_id(id):
 
 
 @comic_api.post('/')
+@jwt_required()
 def create_comic():
     request_json = request.get_json()
     new_comic = Comic(
@@ -33,10 +35,11 @@ def create_comic():
 
 
 @comic_api.put('/')
+@jwt_required()
 def update_comic():
     request_json = request.get_json()
     if 'id' in request_json:
-        modify_commic: Comic = db.get_or_404(Comic, request_json['id'])
+        modify_commic: Comic = db.get_or_404(Comic, request_json['id'],description=f"Comic with id {request_json['id']} does not exits")
         modify_commic.name = request_json['name']
         modify_commic.description = request_json['description']
         modify_commic.update_date = datetime.now()
@@ -54,6 +57,7 @@ def update_comic():
 
 
 @comic_api.delete('/<id>')
+@jwt_required()
 def delete_comic(id):
     comic: Comic = db.get_or_404(Comic, id)
     db.session.delete(comic)
