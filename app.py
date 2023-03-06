@@ -1,16 +1,20 @@
 from flask import Flask
+from flask_migrate import Migrate, upgrade
 from models import db
 from comic_api import comic_api
 
 app = Flask(__name__)
 
-#TODO: remove this stub start up section
+#TODO: read database connection string from env
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite+pysqlite:///:memory:" 
+app.config["SQLALCHEMY_ECHO"] = "True"
 
 app.register_blueprint(comic_api)
 
+migrate = Migrate(app, db)
+
 db.init_app(app)
 
-#TODO: move to migrate based
 with app.app_context():
-    db.create_all()
+    # !!! AUTO MIGRATE !!! Only enable this line in debug mode
+    upgrade(directory='migrations', revision='head')
